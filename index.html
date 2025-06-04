@@ -46,7 +46,7 @@
       text-align: center;
     }
     #main-menu {
-      background-image: url('https://picsum.photos/1920/1080?random=11');
+      background-image: url('https://placekitten.com/1920/1080');
       background-size: cover;
       background-position: center;
       opacity: 0;
@@ -294,16 +294,18 @@
 </div>
 <script>
 const imageUrls = [
-  'https://picsum.photos/300/300?random=1',
-  'https://picsum.photos/300/300?random=2',
-  'https://picsum.photos/300/300?random=3',
-  'https://picsum.photos/300/300?random=4',
-  'https://picsum.photos/300/300?random=5',
-  'https://picsum.photos/300/300?random=6',
-  'https://picsum.photos/300/300?random=7',
-  'https://picsum.photos/300/300?random=8',
-  'https://picsum.photos/300/300?random=9',
-  'https://picsum.photos/300/300?random=10'
+  './images/puzzle1.jpg',
+  './images/puzzle2.jpg',
+  './images/puzzle3.jpg',
+  './images/puzzle4.jpg',
+  './images/puzzle5.jpg',
+  './images/puzzle6.jpg',
+  './images/puzzle7.jpg',
+  './images/puzzle8.jpg',
+  './images/puzzle9.jpg',
+  './images/puzzle10.jpg',
+  'https://placekitten.com/300/300',
+  'https://loremflickr.com/300/300'
 ];
 const completionMessages = [
   'Can you guess what this image depicts?',
@@ -317,6 +319,15 @@ let startTime, timerInterval;
 let allPieces = [];
 let leaderboard = { '3x3': [], '4x4': [], '6x6': [], '10x10': [] };
 let draggedTile = null;
+function preloadImage(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.src = url;
+    img.onload = () => resolve(url);
+    img.onerror = () => reject();
+    setTimeout(() => reject(), 5000);
+  });
+}
 function startGame() {
   document.getElementById('main-menu').classList.remove('active');
   document.getElementById('level-selector').classList.add('active');
@@ -346,13 +357,23 @@ function goToMenu() {
   document.querySelectorAll('.active').forEach(el => el.classList.remove('active'));
   document.getElementById('main-menu').classList.add('active');
 }
-function initPuzzle(size) {
+async function initPuzzle(size) {
   const name = document.getElementById('playerName').value.trim();
   if (!name) return alert('Please enter your name');
   boardSize = size;
   document.getElementById('level-selector').classList.remove('active');
   document.getElementById('puzzle-game').classList.add('active');
-  imageUrl = imageUrls[Math.floor(Math.random() * imageUrls.length)];
+  let selectedUrl = null;
+  for (const url of imageUrls) {
+    try {
+      await preloadImage(url);
+      selectedUrl = url;
+      break;
+    } catch (e) {
+      console.warn(`Failed to load image: ${url}`);
+    }
+  }
+  imageUrl = selectedUrl || imageUrls[imageUrls.length - 1];
   tileSize = 300 / boardSize;
   correct = 0;
   total = boardSize * boardSize;
@@ -475,8 +496,8 @@ function handleTouchEnd(e) {
     draggedTile.style.left = slot.style.left;
     draggedTile.style.top = slot.style.top;
     draggedTile.style.position = 'absolute';
-    draggedTile.classList.remove('tray-tile');
-    draggedTile.classList.add('placed-tile');
+    div.classList.remove('tray-tile');
+    div.classList.add('placed-tile');
     container.appendChild(draggedTile);
     tray = tray.filter(t => t !== draggedTile);
     correct++;
